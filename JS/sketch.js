@@ -14,7 +14,6 @@ function setup() {
 
 function draw() {
   background(0); // 검정 배경
-  image(video, 0, 0, width, height); // 비디오 출력
 
   const currentTime = millis();
 
@@ -42,7 +41,7 @@ function draw() {
     }
   }
 
-  // 랜드마크를 렌더링하고 오래된 랜드마크 제거
+  // 랜드마크를 렌더링하고 오래된 데이터 제거
   updateAndDrawFeatures(currentTime);
 }
 
