@@ -1,0 +1,20 @@
+/* 전체 페이지 스타일 */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  background-color: #f0f0f0;
+  font-family: Arial, sans-serif;
+}
+
+/* 캔버스를 감싸는 div 스타일 */
+#canvas-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 2px solid #333;
+  padding: 20px;
+  background-color: #ffffff;
+}
