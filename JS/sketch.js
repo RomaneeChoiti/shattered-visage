@@ -1,88 +1,147 @@
-let facialFeatures = []; // 얼굴 랜드마크를 저장할 배열
-const featureLifespan = 3000; // 랜드마크 유지 시간 (밀리초)
-const updateInterval = 500; // 랜드마크를 추가할 간격 (밀리초)
-let lastUpdateTime = 0; // 마지막으로 랜드마크가 추가된 시간
+let waterBlob;
+let lastUpdateTime = 0;
+const updateInterval = 50;
+
+let previousLandmarks = []; // 이전 프레임의 랜드마크 좌표
+let movementMagnitude = 0; // 움직임 크기
+let targetRadius = 0;
+let targetColor;
+let currentColor;
 
 function setup() {
-  createCanvas(640, 480); // 캔버스 크기 설정
-  initializeVideo(); // 웹캠 초기화
+  createCanvas(1080, 720);
+  initializeVideo();
   initializeFaceAPI(() => {
     console.log("FaceAPI 모델 로드 완료");
-    detectFaces(); // 얼굴 감지 시작
+    detectFaces();
   });
+  waterBlob = new WaterBlob(width / 2, height / 2, 100, color(50, 150, 255));
+  currentColor = color(50, 150, 255);
+  targetColor = currentColor;
 }
 
 function draw() {
-  background(0); // 검정 배경
+  background(10, 10, 30); // 어두운 배경
 
   const currentTime = millis();
 
-  // 특정 시간마다 새로운 랜드마크 추가
+  // 얼굴 데이터 업데이트
   if (currentTime - lastUpdateTime > updateInterval) {
-    lastUpdateTime = currentTime; // 업데이트 시간 갱신
+    lastUpdateTime = currentTime;
     if (detections && detections.length > 0) {
-      for (let i = 0; i < detections.length; i++) {
-        const landmarks = detections[i].landmarks.positions;
+      const landmarks = detections[0].landmarks.positions;
+      const faceOutline = landmarks.slice(0, 17); // 얼굴 윤곽
+      const mouth = landmarks.slice(48, 68); // 입
+      const leftEye = landmarks.slice(36, 42);
+      const rightEye = landmarks.slice(42, 48);
+      const nose = landmarks.slice(27, 36);
 
-        // 얼굴 모양, 눈, 코, 입 랜드마크 추출
-        const faceOutline = landmarks.slice(0, 17); // 얼굴 윤곽 (0~16)
-        const leftEye = landmarks.slice(36, 42); // 왼쪽 눈 (36~41)
-        const rightEye = landmarks.slice(42, 48); // 오른쪽 눈 (42~47)
-        const nose = landmarks.slice(27, 36); // 코 (27~35)
-        const mouth = landmarks.slice(48, 68); // 입 (48~67)
-
-        // 각 랜드마크 데이터를 배열에 추가
-        addFeature(faceOutline, currentTime, color(0, 255, 0)); // 초록색 얼굴 윤곽
-        addFeature(leftEye, currentTime, color(255, 0, 0)); // 빨간색 왼쪽 눈
-        addFeature(rightEye, currentTime, color(255, 0, 0)); // 빨간색 오른쪽 눈
-        addFeature(nose, currentTime, color(0, 0, 255)); // 파란색 코
-        addFeature(mouth, currentTime, color(255, 255, 0)); // 노란색 입
-      }
+      setTargetBlobPositionAndColor(
+        landmarks,
+        faceOutline,
+        mouth,
+        leftEye,
+        rightEye,
+        nose
+      );
     }
   }
 
-  // 랜드마크를 렌더링하고 오래된 데이터 제거
-  updateAndDrawFeatures(currentTime);
+  // 물 형상 업데이트 및 그리기
+  waterBlob.update();
+  waterBlob.display();
 }
 
-// 새로운 랜드마크 데이터를 배열에 추가
-function addFeature(points, currentTime, featureColor) {
-  facialFeatures.push({
-    points: points, // 랜드마크 좌표
-    createdAt: currentTime, // 생성된 시간
-    color: featureColor, // 랜드마크의 색상
-  });
-}
+// 움직임 감지 및 목표 반지름과 색상 설정
+function setTargetBlobPositionAndColor(
+  landmarks,
+  faceOutline,
+  mouth,
+  leftEye,
+  rightEye,
+  nose
+) {
+  // 중앙 위치 및 반지름 설정
+  const centerX = width / 2;
+  const centerY = height / 2;
+  const radius =
+    dist(
+      faceOutline[0].x,
+      faceOutline[0].y,
+      faceOutline[16].x,
+      faceOutline[16].y
+    ) / 2;
+  targetRadius = radius;
 
-// 랜드마크를 렌더링하고 오래된 데이터 제거
-function updateAndDrawFeatures(currentTime) {
-  noFill();
-
-  for (let i = facialFeatures.length - 1; i >= 0; i--) {
-    const feature = facialFeatures[i];
-    const age = currentTime - feature.createdAt; // 랜드마크의 나이
-
-    // 수명을 초과한 랜드마크 제거
-    if (age > featureLifespan) {
-      facialFeatures.splice(i, 1);
-      continue;
+  // 움직임 감지: 현재와 이전 랜드마크 비교
+  if (previousLandmarks.length > 0) {
+    movementMagnitude = 0;
+    for (let i = 0; i < landmarks.length; i++) {
+      let dx = landmarks[i].x - previousLandmarks[i].x;
+      let dy = landmarks[i].y - previousLandmarks[i].y;
+      movementMagnitude += sqrt(dx * dx + dy * dy);
     }
+    movementMagnitude /= landmarks.length; // 평균 변화량
+  }
 
-    // 랜드마크의 투명도 계산 (시간에 따라 점점 사라짐)
-    const alpha = map(age, 0, featureLifespan, 255, 0);
+  // 변화량을 색상에 매핑
+  const mappedRed = map(movementMagnitude, 0, 10, 50, 255, true);
+  const mappedGreen = map(movementMagnitude, 0, 10, 150, 50, true);
+  const mappedBlue = map(movementMagnitude, 0, 10, 255, 100, true);
 
-    // 랜드마크를 그리기
-    stroke(
-      feature.color.levels[0],
-      feature.color.levels[1],
-      feature.color.levels[2],
-      alpha
-    );
-    strokeWeight(2);
+  targetColor = color(mappedRed, mappedGreen, mappedBlue);
+
+  // 현재 랜드마크를 이전 랜드마크로 저장
+  previousLandmarks = landmarks.map((landmark) => ({
+    x: landmark.x,
+    y: landmark.y,
+  }));
+}
+
+// 부드럽게 움직이는 물 형상 클래스
+class WaterBlob {
+  constructor(x, y, radius, color) {
+    this.x = x;
+    this.y = y;
+    this.radius = radius;
+    this.color = color;
+    this.noiseOffset = random(1000);
+  }
+
+  update() {
+    this.radius = lerp(this.radius, targetRadius, 0.1);
+    currentColor = lerpColor(currentColor, targetColor, 0.1);
+  }
+
+  display() {
+    stroke(100, 150, 255, 180);
+    strokeWeight(1);
+    fill(currentColor);
+
     beginShape();
-    for (let point of feature.points) {
-      vertex(point.x, point.y);
+    for (let angle = 0; angle < TWO_PI; angle += radians(10)) {
+      let noiseValue = noise(
+        cos(angle) + this.noiseOffset,
+        sin(angle) + this.noiseOffset
+      );
+      let r = this.radius + map(noiseValue, 0, 1, -15, 15);
+      let x = this.x + r * cos(angle);
+      let y = this.y + r * sin(angle);
+      vertex(x, y);
     }
     endShape(CLOSE);
+
+    this.displayHighlight();
+    this.noiseOffset += 0.01;
+  }
+
+  displayHighlight() {
+    noStroke();
+    fill(255, 255, 255, 150);
+    ellipse(
+      this.x - this.radius / 3,
+      this.y - this.radius / 3,
+      this.radius / 4
+    );
   }
 }

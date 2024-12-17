@@ -1,5 +1,7 @@
 # shattered-visage
 
+    프로젝트 진행 단계
+
     step.1 Face 인식
 
 ### **ml5.js**
