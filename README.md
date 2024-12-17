@@ -58,7 +58,7 @@
 
   - 눈, 코, 입 등 얼굴 요소의 움직임 변화에 따라 색상이 실시간으로 바뀝니다.
 
-  ![Face Detection Demo](assets/gif/step1.gif)
+  ![Face Detection Demo](assets/gif/step2.gif)
 
 ---
 
