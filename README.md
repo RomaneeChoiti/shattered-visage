@@ -22,7 +22,10 @@
   - `initializeFaceAPI`와 `detectFaces`를 통해 얼굴을 감지하는 기능을 구현했습니다.
   - 얼굴 윤곽, 눈, 코, 입의 위치를 배열로 저장하여 사용할 수 있게 했습니다.
 - **비디오 입력 설정**:
+
   - `initializeVideo()`를 통해 웹캠의 비디오를 캔버스에 출력하면서 실시간으로 분석하는 환경을 구축했습니다.
+
+  ![Face Detection Demo](assets/gif/step1.git)
 
 ---
 
@@ -52,6 +55,11 @@
 - **유기적인 경계**:
   - 물체 경계는 Perlin Noise를 기반으로 흔들리며 액체처럼 표현됩니다.
 - **색상 변화**:
+
   - 눈, 코, 입 등 얼굴 요소의 움직임 변화에 따라 색상이 실시간으로 바뀝니다.
+
+    ![Face Detection Demo](assets/gif/step2.git)
+
+---
 
 ### **Step 3: 구체화 (Materialization)**
