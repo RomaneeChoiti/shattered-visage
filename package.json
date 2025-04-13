@@ -1,0 +1,30 @@
+{
+  "name": "shattered-visage",
+  "version": "2.0.0",
+  "description": "프로젝트 진행 단계",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RomaneeChoiti/shattered-visage.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/RomaneeChoiti/shattered-visage/issues"
+  },
+  "homepage": "https://github.com/RomaneeChoiti/shattered-visage#readme",
+  "devDependencies": {
+    "patch-package": "^8.0.0",
+    "vite": "^6.2.5"
+  },
+  "dependencies": {
+    "ml5": "^1.0.1",
+    "p5": "^1.11.3"
+  }
+}

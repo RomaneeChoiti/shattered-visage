@@ -23,3 +23,5 @@ function detectFaces() {
     detectFaces(); // 지속적인 감지
   });
 }
+
+export { initializeVideo, initializeFaceAPI, detectFaces };
