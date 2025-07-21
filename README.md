@@ -25,7 +25,7 @@
 
   - `initializeVideo()`를 통해 웹캠의 비디오를 캔버스에 출력하면서 실시간으로 분석하는 환경을 구축했습니다.
 
-  ![Face Detection Demo](assets/gif/step1.gif)
+  ![Face Detection Demo](src/assets/gif/step1.gif)
 
 ---
 
